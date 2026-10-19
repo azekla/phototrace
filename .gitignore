@@ -1,0 +1,10 @@
+.venv/
+var/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+*.log
+*.sqlite3
+*.zip

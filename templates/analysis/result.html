@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Результат проверки — PhotoTrace{% endblock %}
+{% block content %}
+<div class="page-top"><a class="back-link" href="{% url 'analysis-index' %}">← Новая проверка</a><span class="page-kicker">АНАЛИЗ ИЗОБРАЖЕНИЯ</span></div>
+<div class="result-heading"><div><h1>Результат проверки</h1><p class="subtle break-text">{{ analysis.original_name }} · {{ analysis.created_at|date:"d.m.Y H:i" }}</p></div><span class="state-pill state-{{ analysis.state }}" id="state-pill">{{ analysis.get_state_display }}</span></div>
+{% if analysis.state == 'queued' or analysis.state == 'running' %}
+<div class="card processing" id="processing" data-status-url="{% url 'analysis-status' analysis.id %}"><div class="spinner"></div><div><h2>Изображение обрабатывается</h2><p id="processing-label">{{ analysis.get_state_display }}. Страница обновится автоматически.</p><p class="subtle">Если обработчик не запущен, проверка останется в очереди. Метаданные появятся после обработки.</p></div></div>
+{% else %}
+<div class="result-grid">
+  <div class="result-main">
+    <section class="card image-card"><div class="card-heading"><span class="step-number">01</span><h2>Изображение</h2></div>{% if analysis.state != 'failed' %}<div class="image-frame"><img src="{% url 'analysis-preview' analysis.id %}" alt="Предпросмотр загруженного изображения"></div>{% endif %}<div class="image-facts"><span>{{ analysis.image_format }}</span><span>{{ analysis.width }} × {{ analysis.height }} px</span><span>{{ analysis.byte_size|filesizeformat }}</span></div></section>
+    <section class="card metadata-card"><div class="card-heading"><span class="step-number">03</span><h2>Метаданные файла</h2></div>{% if public_metadata %}<dl class="metadata-list">{% for key,value in public_metadata.items %}<div><dt>{{ key }}</dt><dd class="break-text">{{ value }}</dd></div>{% endfor %}</dl>{% else %}<p class="empty-message">Поддерживаемые поля метаданных не найдены.</p>{% endif %}{% if has_private %}<div class="sensitive-box"><p>Обнаружены поля, которые могут содержать личные данные.</p><button class="button secondary" id="show-private" type="button" data-url="{% url 'analysis-private-metadata' analysis.id %}">Показать чувствительные поля</button><dl class="metadata-list" id="private-fields" hidden></dl></div>{% endif %}{% for note in metadata_notes %}<p class="fine-print">{{ note }}</p>{% endfor %}</section>
+  </div>
+  <aside class="result-side"><section class="card verdict-card"><div class="card-heading"><span class="step-number">02</span><h2>Оценка модели</h2></div><div class="verdict-icon" aria-hidden="true">◉</div><h3>{{ analysis.verdict_text }}</h3>{% if analysis.score != None %}<div class="score-block"><span>Оценка сходства с ИИ-изображениями</span><strong>{{ analysis.score_percent }}<small> / 100</small></strong><div class="score-bar"><span style="width:{{ analysis.score_percent|stringformat:'f' }}%"></span></div></div>{% endif %}<p class="fine-print">Это численный показатель модели, а не доказанная вероятность генерации. Пороги предварительные; независимая калибровка ещё не выполнена.</p></section>
+  <section class="card details-card"><h2>Сведения о проверке</h2><dl><div><dt>SHA-256</dt><dd class="hash break-text">{{ analysis.sha256 }}</dd></div><div><dt>Модель</dt><dd class="break-text">{% if analysis.model_id %}Community Forensics v13{% else %}Недоступна{% endif %}</dd></div>{% if analysis.processing_ms %}<div><dt>Время обработки</dt><dd>{{ analysis.processing_ms }} мс</dd></div>{% endif %}</dl>{% for note in analysis.notes %}<div class="notice warning">{{ note }}</div>{% endfor %}</section>
+  <section class="card action-card"><h2>Отчёт и данные</h2><p>Чувствительные поля исключены из отчёта.</p><div class="action-links"><a class="button secondary" href="{% url 'analysis-report-pdf' analysis.id %}">Скачать PDF</a><a class="button secondary" href="{% url 'analysis-report-json' analysis.id %}">Скачать JSON</a></div><form action="{% url 'analysis-delete' analysis.id %}" method="post" onsubmit="return confirm('Удалить проверку и загруженный файл?')">{% csrf_token %}<button type="submit" class="delete-button">Удалить проверку</button></form></section></aside>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/result.js' %}" defer></script>{% endblock %}

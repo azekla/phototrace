@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Проверить изображение — PhotoTrace{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="eyebrow"><span class="live-dot"></span> ИНСТРУМЕНТ АНАЛИЗА ИЗОБРАЖЕНИЙ</div>
+  <h1>Что можно узнать<br><em>о происхождении фото?</em></h1>
+  <p class="hero-lead">Загрузите изображение. Система оценит его визуальные признаки и отдельно покажет доступные метаданные файла.</p>
+</section>
+<div class="content-grid">
+  <section class="card upload-card" aria-labelledby="upload-heading">
+    <div class="card-heading"><span class="step-number">01</span><h2 id="upload-heading">Выберите изображение</h2></div>
+    {% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
+    <form action="{% url 'analysis-create' %}" method="post" enctype="multipart/form-data" id="upload-form">
+      {% csrf_token %}
+      <label class="drop-zone" id="drop-zone" for="image-input">
+        <span class="upload-icon" aria-hidden="true">↑</span>
+        <strong>Перетащите файл сюда</strong>
+        <span>или нажмите, чтобы выбрать</span>
+        <input id="image-input" type="file" name="image" accept="image/jpeg,image/png,image/webp" required>
+      </label>
+      <div class="file-selected" id="file-selected" hidden></div>
+      <div class="upload-bottom"><span>JPEG, PNG, WebP · до 15 МБ · до 25 Мп</span><button class="button primary" type="submit" id="submit-button">Проверить фото <span aria-hidden="true">→</span></button></div>
+    </form>
+  </section>
+  <aside class="side-stack">
+    <div class="info-panel"><span class="panel-index">01 / ВИЗУАЛЬНЫЙ АНАЛИЗ</span><h3>Признаки генерации</h3><p>Модель анализирует само изображение. Её оценка показывает сходство с известными примерами, а не доказывает подлинность.</p></div>
+    <div class="info-panel"><span class="panel-index">02 / МЕТАДАННЫЕ</span><h3>Данные файла</h3><p>Посмотрите сведения о камере, дате, программе обработки и другие доступные поля. Геоданные скрыты по умолчанию.</p></div>
+  </aside>
+</div>
+{% if recent %}<section class="recent"><div class="section-header"><h2>Последние проверки</h2><a href="{% url 'analysis-history' %}">Вся история →</a></div><div class="recent-list">{% for item in recent %}<a href="{% url 'analysis-result' item.id %}"><span>{{ item.original_name }}</span><span>{{ item.get_state_display }} <span aria-hidden="true">→</span></span></a>{% endfor %}</div></section>{% endif %}
+<div class="privacy-note"><span aria-hidden="true">◎</span><p>Файл хранится временно в закрытой папке приложения. Проверку можно удалить из истории. Автоматическая очистка настроена на 7 дней.</p></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/upload.js' %}" defer></script>{% endblock %}
