@@ -16,6 +16,15 @@ if not errorlevel 1 (
     goto venv_done
 )
 
+if exist "%LOCALAPPDATA%\Programs\Python\Python312\python.exe" (
+    "%LOCALAPPDATA%\Programs\Python\Python312\python.exe" -m venv .venv
+    goto venv_done
+)
+if exist "%ProgramFiles%\Python312\python.exe" (
+    "%ProgramFiles%\Python312\python.exe" -m venv .venv
+    goto venv_done
+)
+
 echo Python 3.12 x64 was not found. Install it from python.org, enable Add python.exe to PATH, then retry.
 if not defined PHOTOTRACE_NONINTERACTIVE pause
 exit /b 1
